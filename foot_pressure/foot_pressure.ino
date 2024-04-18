@@ -1,16 +1,20 @@
+#define LX   -1
+#define LY  0.5
+#define RX    1
+#define RY  0.5
+#define HY   -1
+
+typedef struct {
+  float x;
+  float y;
+} vector_t;
+
+// Ports
 int s1 = A0;
-int left = 0;
-
 int s2 = A1;
-int heel = 0;
-
 int s3 = A2;
-int right = 0;
 
 int check(int a, int b, int c) {
-  // float rat1 = abs((a/b) - 1);
-  // float rat2 = abs((b/c) - 1);
-  // float rat3 = abs((c/a) - 1);
   float rat1 = abs(a-b);
   float rat2 = abs(b-c);
   float rat3 = abs(c-a);
@@ -29,6 +33,16 @@ char* direction(int a, int b, int c) {
   return "center";
 }
 
+void vectorize(int left, int heel, int right, vector_t *vec) {
+  float norm = sqrt(left*left + heel*heel + right*right);
+  float lnorm = left / norm;
+  float hnorm = heel / norm;
+  float rnorm = right / norm;
+
+  vec->x = LX*lnorm + RX*rnorm;
+  vec->y = LY*lnorm + RY*rnorm + HY*hnorm;
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -36,12 +50,18 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  left = analogRead(s1);
-  heel = analogRead(s2);
-  right = analogRead(s3);
+  int left = analogRead(s1);
+  int heel = analogRead(s2);
+  int right = analogRead(s3);
+
+  vector_t vec;
+  vectorize(left, heel, right, &vec);
 
   delay(100);
-  Serial.print(direction(left, heel, right));
+  //Serial.print(direction(left, heel, right));
+  Serial.print(vec.x);
+  Serial.print(",");
+  Serial.print(vec.y);
   Serial.print(",");
   Serial.print(left);
   Serial.print(",");
