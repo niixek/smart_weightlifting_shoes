@@ -4,6 +4,18 @@
 #define RY  0.5
 #define HY   -1
 
+const int numReadings = 10;   // Number of readings to average
+int readings_s1[numReadings];    // Array to store the readings
+int readings_s2[numReadings];    // Array to store the readings
+int readings_s3[numReadings];    // Array to store the readings
+int index = 0;                // Current index in the array
+int total_s1 = 0;                // Running total of all readings
+int total_s2 = 0;                // Running total of all readings
+int total_s3 = 0;                // Running total of all readings
+int average_s1 = 0;              // Moving average
+int average_s2 = 0;              // Moving average
+int average_s3 = 0;              // Moving average
+
 typedef struct {
   float x;
   float y;
@@ -13,6 +25,44 @@ typedef struct {
 int s1 = A0;
 int s2 = A1;
 int s3 = A2;
+
+void update_moving_avg() {
+  // Read a new value
+  int sensorValue_s1 = analogRead(s1);
+  int sensorValue_s2 = analogRead(s2);
+  int sensorValue_s3 = analogRead(s3);
+
+  // Subtract the oldest reading from the total
+  total_s1 -= readings_s1[index];
+  total_s2 -= readings_s2[index];
+  total_s3 -= readings_s3[index];
+  
+  // Store the new reading in the array
+  readings_s1[index] = sensorValue_s1;
+  readings_s2[index] = sensorValue_s2;
+  readings_s3[index] = sensorValue_s3;
+
+  // Add the new reading to the total
+  total_s1 += sensorValue_s1;
+  total_s2 += sensorValue_s2;
+  total_s3 += sensorValue_s3;
+
+  // Increment the index
+  index = (index + 1) % numReadings;
+
+  // Calculate the moving average
+  average_s1 = total_s1 / numReadings;
+  average_s2 = total_s2 / numReadings;
+  average_s3 = total_s3 / numReadings;
+
+  // Print the average
+  // Serial.println(average_s1);
+  // Serial.println(average_s2);
+  // Serial.println(average_s3);
+
+  // Delay for stability
+  // delay(100);
+}
 
 int check(int a, int b, int c) {
   float rat1 = abs(a-b);
@@ -45,6 +95,13 @@ void vectorize(float left, float heel, float right, vector_t *vec) {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+
+  // Initialize all readings to 0
+  for (int i = 0; i < numReadings; i++) {
+    readings_s1[i] = 0;
+    readings_s2[i] = 0;
+    readings_s3[i] = 0;
+  }
 }
 
 void loop() {
@@ -52,6 +109,8 @@ void loop() {
   int left = analogRead(s1) + 1;
   int heel = analogRead(s2) + 1;
   int right = analogRead(s3) + 1;
+
+  // update_moving_avg();
 
   vector_t vec;
   vectorize(left, heel, right, &vec);
