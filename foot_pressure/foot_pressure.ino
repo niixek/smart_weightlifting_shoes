@@ -33,12 +33,11 @@ char* direction(int a, int b, int c) {
   return "center";
 }
 
-void vectorize(int left, int heel, int right, vector_t *vec) {
+void vectorize(float left, float heel, float right, vector_t *vec) {
   float norm = sqrt(left*left + heel*heel + right*right);
   float lnorm = left / norm;
   float hnorm = heel / norm;
   float rnorm = right / norm;
-
   vec->x = LX*lnorm + RX*rnorm;
   vec->y = LY*lnorm + RY*rnorm + HY*hnorm;
 }
@@ -49,15 +48,15 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  int left = analogRead(s1);
-  int heel = analogRead(s2);
-  int right = analogRead(s3);
+  // adding one to prevent divide by 0
+  int left = analogRead(s1) + 1;
+  int heel = analogRead(s2) + 1;
+  int right = analogRead(s3) + 1;
 
   vector_t vec;
   vectorize(left, heel, right, &vec);
 
-  delay(100);
+  delay(120);
   //Serial.print(direction(left, heel, right));
   Serial.print(vec.x);
   Serial.print(",");
