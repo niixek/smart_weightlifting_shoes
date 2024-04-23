@@ -26,11 +26,11 @@ int s1 = A0;
 int s2 = A1;
 int s3 = A2;
 
-void update_moving_avg() {
+void update_moving_avg(left, heel, right) {
   // Read a new value
-  int sensorValue_s1 = analogRead(s1);
-  int sensorValue_s2 = analogRead(s2);
-  int sensorValue_s3 = analogRead(s3);
+  int sensorValue_s1 = left;
+  int sensorValue_s2 = heel;
+  int sensorValue_s3 = right;
 
   // Subtract the oldest reading from the total
   total_s1 -= readings_s1[index];
@@ -110,7 +110,12 @@ void loop() {
   int heel = analogRead(s2) + 1;
   int right = analogRead(s3) + 1;
 
-  // update_moving_avg();
+  vector_t o_vec;
+  if((left + heel + right) - (average_s1 + average_s2 + average_s3) > 300 && (average_s1 + average_s2 + average_s3) > 250) {
+    vectorize(average_s1 + 1, average_s2 + 1, average_s3 + 1, &o_vec);
+  } else {
+    update_moving_avg(left, heel, right);
+  }
 
   vector_t vec;
   vectorize(left, heel, right, &vec);
