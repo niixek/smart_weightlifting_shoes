@@ -26,7 +26,10 @@ int s1 = A0;
 int s2 = A1;
 int s3 = A2;
 
-void update_moving_avg(left, heel, right) {
+// optimal vector
+vector_t o_vec;
+
+void update_moving_avg(float left, float heel, float right) {
   // Read a new value
   int sensorValue_s1 = left;
   int sensorValue_s2 = heel;
@@ -61,7 +64,7 @@ void update_moving_avg(left, heel, right) {
   // Serial.println(average_s3);
 
   // Delay for stability
-  // delay(100);
+  //delay(100);
 }
 
 int check(int a, int b, int c) {
@@ -110,17 +113,18 @@ void loop() {
   int heel = analogRead(s2) + 1;
   int right = analogRead(s3) + 1;
 
-  vector_t o_vec;
-  if((left + heel + right) - (average_s1 + average_s2 + average_s3) > 300 && (average_s1 + average_s2 + average_s3) > 250) {
-    vectorize(average_s1 + 1, average_s2 + 1, average_s3 + 1, &o_vec);
+  if((left + heel + right) - (average_s1 + average_s2 + average_s3) > 100 && (average_s1 + average_s2 + average_s3) > 150) {
+    vectorize(average_s1, average_s2, average_s3, &o_vec);
+    Serial.print("u,");
   } else {
+    Serial.print("n,");
     update_moving_avg(left, heel, right);
   }
 
   vector_t vec;
   vectorize(left, heel, right, &vec);
 
-  delay(120);
+  delay(110);
   //Serial.print(direction(left, heel, right));
   Serial.print(vec.x);
   Serial.print(",");
