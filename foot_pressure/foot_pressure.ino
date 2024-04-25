@@ -29,6 +29,8 @@ int s3 = A2;
 // optimal vector
 vector_t o_vec;
 
+vector_t vec;
+
 void update_moving_avg(float left, float heel, float right) {
   // Read a new value
   int sensorValue_s1 = left;
@@ -74,7 +76,7 @@ int check(int a, int b, int c) {
   return (rat1 + rat2 + rat3) < 50;
 }
 
-char* direction(int a, int b, int c) {
+/*char* direction(int a, int b, int c) {
   if (a > 700 && b < 20 && c > 700)
     return "forward";
   if (a < 20 && b > 200 && c < 100)
@@ -85,6 +87,7 @@ char* direction(int a, int b, int c) {
     return "left";
   return "center";
 }
+*/
 
 void vectorize(float left, float heel, float right, vector_t *vec) {
   float norm = sqrt(left*left + heel*heel + right*right);
@@ -93,6 +96,57 @@ void vectorize(float left, float heel, float right, vector_t *vec) {
   float rnorm = right / norm;
   vec->x = LX*lnorm + RX*rnorm;
   vec->y = LY*lnorm + RY*rnorm + HY*hnorm;
+}
+
+//0 = center
+//1 = left
+//2 = right
+//3 = forward
+//4 = backward
+int direction(vector_t opt, vector_t vec, float threshold) {
+  float resx = opt.x - vec.x;
+  float resy = opt.y - vec.y;
+
+  if ((abs(resx) < threshold) && (abs(resy) < threshold)) {
+    return 0;
+  }
+
+  float rad = atan2(resy, resx);
+
+  if ((rad >= 2.35619 && rad <= 3.14159) || (rad >= -3.14159 && rad <= -2.35619)) {
+    return 1;
+  }
+
+  if ((rad >= 0 && rad <= 0.785398) || (rad <= 0 && rad >= -0.785398)) {
+    return 2;
+  }
+
+  if (rad >= 0.785398 && rad <= 2.35619) {
+    return 3;
+  }
+
+  if (rad <= -0.785398 && rad >= -2.35619) {
+    return 4;
+  }
+
+}
+
+char* printdir(int code) {
+  if (code == 0) { 
+    return "centered";
+  }
+  if (code == 1) { 
+    return "left";
+  }
+  if (code == 2) { 
+    return "right";
+  }
+  if (code == 3) { 
+    return "forward";
+  }
+  if (code == 4) { 
+    return "backward";
+  }
 }
 
 void setup() {
@@ -113,19 +167,27 @@ void loop() {
   int heel = analogRead(s2) + 1;
   int right = analogRead(s3) + 1;
 
+  int dir = -1;
+
   if((left + heel + right) - (average_s1 + average_s2 + average_s3) > 100 && (average_s1 + average_s2 + average_s3) > 150) {
     vectorize(average_s1, average_s2, average_s3, &o_vec);
     Serial.print("u,");
+
+    vectorize(left, heel, right, &vec);
+
+    dir = direction(o_vec, vec, 0.2);
+
   } else {
     Serial.print("n,");
     update_moving_avg(left, heel, right);
   }
 
-  vector_t vec;
-  vectorize(left, heel, right, &vec);
+
 
   delay(110);
   //Serial.print(direction(left, heel, right));
+  Serial.println(printdir(dir));
+
   Serial.print(vec.x);
   Serial.print(",");
   Serial.print(vec.y);
