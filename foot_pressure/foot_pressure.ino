@@ -1,8 +1,17 @@
+#include <string.h>
+#include <FastLED.h>
+
 #define LX   -1
 #define LY  0.5
 #define RX    1
 #define RY  0.5
 #define HY   -1
+#define BRIGHT 10
+
+#define LED_PIN     6
+#define NUM_LEDS    12
+
+CRGB leds[NUM_LEDS];
 
 const int numReadings = 10;   // Number of readings to average
 int readings_s1[numReadings];    // Array to store the readings
@@ -27,7 +36,7 @@ int s2 = A1;
 int s3 = A2;
 
 // optimal vector
-vector_t o_vec;
+
 
 vector_t vec;
 
@@ -112,6 +121,7 @@ int direction(vector_t opt, vector_t vec, float threshold) {
   }
 
   float rad = atan2(resy, resx);
+  Serial.print(rad);
 
   if ((rad >= 2.35619 && rad <= 3.14159) || (rad >= -3.14159 && rad <= -2.35619)) {
     return 1;
@@ -149,19 +159,67 @@ char* printdir(int code) {
   }
 }
 
+void lightHelper(int dir) {
+
+    int start, end;
+    CRGB color;
+
+    start = 0;
+    end = NUM_LEDS;
+    color = CRGB(0, BRIGHT, 0);
+
+    FastLED.clear();
+    
+    if (dir == 3) {
+        start = 0;
+        end = start + NUM_LEDS / 4;
+        color = CRGB(BRIGHT, 0, 0);
+    } 
+
+    if (dir == 2) {
+        start = NUM_LEDS / 4;
+        end = start + NUM_LEDS / 4;
+        color = CRGB(BRIGHT, 0, 0);
+    } 
+
+    if (dir == 4) {
+        start = 2 * (NUM_LEDS / 4);
+        end = start + NUM_LEDS / 4;
+        color = CRGB(BRIGHT, 0, 0);
+    } 
+
+    if (dir == 1) {
+        start = 3 * (NUM_LEDS / 4);
+        end = start + NUM_LEDS / 4;
+        color = CRGB(BRIGHT, 0, 0);
+    } 
+
+    for (int i = start; i < end; i++) {
+        leds[i] = color;
+    }
+
+    FastLED.show(); // Show the updated LED colors
+}
+
 void setup() {
+  FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.clear(); // Clear all LEDs
+  FastLED.show();  // Make sure to call show() to update the LEDs
   // put your setup code here, to run once:
   Serial.begin(9600);
 
   // Initialize all readings to 0
-  for (int i = 0; i < numReadings; i++) {
-    readings_s1[i] = 0;
-    readings_s2[i] = 0;
-    readings_s3[i] = 0;
-  }
+  // for (int i = 0; i < numReadings; i++) {
+  //   readings_s1[i] = 0;
+  //   readings_s2[i] = 0;
+  //   readings_s3[i] = 0;
+  // }
 }
 
 void loop() {
+  vector_t o_vec;
+  o_vec.x = -0.45;
+  o_vec.y = 0.40;
   // adding one to prevent divide by 0
   int left = analogRead(s1) + 1;
   int heel = analogRead(s2) + 1;
@@ -169,32 +227,43 @@ void loop() {
 
   int dir = -1;
 
-  if((left + heel + right) - (average_s1 + average_s2 + average_s3) > 100 && (average_s1 + average_s2 + average_s3) > 150) {
-    vectorize(average_s1, average_s2, average_s3, &o_vec);
-    Serial.print("u,");
+  // if((left + heel + right) - (average_s1 + average_s2 + average_s3) > 100 && (average_s1 + average_s2 + average_s3) > 150) {
+  //vectorize(average_s1, average_s2, average_s3, &o_vec);
+  // Serial.print("n,");
 
-    vectorize(left, heel, right, &vec);
+  vectorize(left, heel, right, &vec);
 
-    dir = direction(o_vec, vec, 0.2);
-
-  } else {
-    Serial.print("n,");
-    update_moving_avg(left, heel, right);
-  }
-
-
+  dir = direction(o_vec, vec, 0.2);
+  lightHelper(dir);
+  Serial.print(printdir(dir));
+  // } else {
+    // Serial.print("u,");
+    // Serial.print(vec.x);
+    // Serial.print(",");
+    // Serial.print(vec.y);
+    // Serial.print(",");
+    // Serial.print(average_s1);
+    // Serial.print(",");
+    // Serial.print(average_s2);
+    // Serial.print(",");
+    // Serial.print(average_s3);
+    Serial.print(",");
+    Serial.print(left);
+    Serial.print(",");
+    Serial.print(heel);
+    Serial.print(",");
+    Serial.println(right);
+  //   update_moving_avg(left, heel, right);
+  // }
 
   delay(110);
-  //Serial.print(direction(left, heel, right));
-  Serial.println(printdir(dir));
-
-  Serial.print(vec.x);
-  Serial.print(",");
-  Serial.print(vec.y);
-  Serial.print(",");
-  Serial.print(left);
-  Serial.print(",");
-  Serial.print(heel);
-  Serial.print(",");
-  Serial.println(right);
+    // Serial.print(left);
+    // Serial.print(",");
+    // Serial.print(heel);
+    // Serial.print(",");
+    // Serial.println(right);
+    Serial.print(vec.x);
+    Serial.print(",");
+    Serial.println(vec.y);
+  
 }
