@@ -166,7 +166,7 @@ void lightHelper(int dir) {
 
     start = 0;
     end = NUM_LEDS;
-    color = CRGB(0, BRIGHT, 0);
+    color = CRGB(0, 0, 0);
 
     FastLED.clear();
     
@@ -193,6 +193,12 @@ void lightHelper(int dir) {
         end = start + NUM_LEDS / 4;
         color = CRGB(BRIGHT, 0, 0);
     } 
+    
+    if (dir == 0) {
+      start = 0;
+      end = NUM_LEDS;
+      color = CRGB(0, BRIGHT, 0);
+    }
 
     for (int i = start; i < end; i++) {
         leds[i] = color;
@@ -227,43 +233,10 @@ void loop() {
 
   int dir = -1;
 
-  // if((left + heel + right) - (average_s1 + average_s2 + average_s3) > 100 && (average_s1 + average_s2 + average_s3) > 150) {
-  //vectorize(average_s1, average_s2, average_s3, &o_vec);
-  // Serial.print("n,");
-
   vectorize(left, heel, right, &vec);
-
   dir = direction(o_vec, vec, 0.2);
+  if (left < 35 && right < 35 && heel < 35)
+    dir = -1;
   lightHelper(dir);
-  Serial.print(printdir(dir));
-  // } else {
-    // Serial.print("u,");
-    // Serial.print(vec.x);
-    // Serial.print(",");
-    // Serial.print(vec.y);
-    // Serial.print(",");
-    // Serial.print(average_s1);
-    // Serial.print(",");
-    // Serial.print(average_s2);
-    // Serial.print(",");
-    // Serial.print(average_s3);
-    Serial.print(",");
-    Serial.print(left);
-    Serial.print(",");
-    Serial.print(heel);
-    Serial.print(",");
-    Serial.println(right);
-  //   update_moving_avg(left, heel, right);
-  // }
-
   delay(110);
-    // Serial.print(left);
-    // Serial.print(",");
-    // Serial.print(heel);
-    // Serial.print(",");
-    // Serial.println(right);
-    Serial.print(vec.x);
-    Serial.print(",");
-    Serial.println(vec.y);
-  
 }
